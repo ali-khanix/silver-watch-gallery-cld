@@ -24,7 +24,9 @@ export const productFormSchema = z.object({
   price: z.coerce.number().positive("قیمت باید مثبت باشد"),
   offer: z.coerce.number().optional(),
   gender: z.enum(["men", "women", "kids"]).optional(),
+  inStock: z.boolean().optional(),
   categoryId: z.string().min(1, "دسته بندی را انتخاب کنید"),
+  brandId: z.string().optional(),
   variants: z
     .array(
       z.object({
@@ -33,8 +35,6 @@ export const productFormSchema = z.object({
       })
     )
     .min(1, "حداقل یک رنگ و تصویر اضافه کنید"),
-
-  brandId: z.string().optional(),
 });
 
 export type ProductFormInput = z.input<typeof productFormSchema>;

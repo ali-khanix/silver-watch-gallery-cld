@@ -14,11 +14,7 @@ const staticFooterLinks = [
   },
   {
     title: "گالری ساعت سیلور",
-    subTitle: [
-      { value: "درباره ما", link: "/about" },
-      { value: "تماس با ما", link: "/call-us" },
-      { value: "شرایط و عودت کالا", link: "/" },
-    ],
+    subTitle: [{ value: "تماس با ما", link: "/call-us" }],
   },
 ];
 

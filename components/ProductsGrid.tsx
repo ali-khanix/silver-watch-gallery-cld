@@ -1,24 +1,63 @@
 import { prisma } from "@/lib/prisma";
 import ProductCard from "./ProductCard";
 import { ProductType } from "@/lib/schema";
+import { Prisma } from "@/lib/generated/prisma/client";
 
 const ProductsGrid = async ({
   categorySlug,
+  brandSlug,
   gender,
   discountedOnly,
+  inStockOnly,
+  minPrice,
+  maxPrice,
+  sort,
 }: {
   categorySlug?: string;
+  brandSlug?: string;
   gender?: string;
   discountedOnly?: boolean;
+  inStockOnly?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: string;
 }) => {
+  const genders = gender ? gender.split(",").filter(Boolean) : [];
+
+  const where: Prisma.ProductWhereInput = {
+    ...(categorySlug ? { category: { slug: categorySlug } } : {}),
+    ...(brandSlug ? { brand: { slug: brandSlug } } : {}),
+    ...(discountedOnly ? { offer: { not: null } } : {}),
+    ...(inStockOnly ? { inStock: true } : {}),
+    ...(minPrice !== undefined || maxPrice !== undefined
+      ? {
+          price: {
+            ...(minPrice !== undefined ? { gte: minPrice } : {}),
+            ...(maxPrice !== undefined ? { lte: maxPrice } : {}),
+          },
+        }
+      : {}),
+    ...(genders.length > 0
+      ? {
+          OR: genders.flatMap((g) => [
+            { gender: g },
+            { category: { group: g } },
+          ]),
+        }
+      : {}),
+  };
+
+  const orderBy: Prisma.ProductOrderByWithRelationInput =
+    sort === "cheapest"
+      ? { price: "asc" }
+      : sort === "priciest"
+        ? { price: "desc" }
+        : { createdAt: "desc" };
+
   const rows = await prisma.product.findMany({
-    where: {
-      ...(categorySlug ? { category: { slug: categorySlug } } : {}),
-      ...(gender ? { gender } : {}),
-      ...(discountedOnly ? { offer: { not: null } } : {}),
-    },
+    where,
     include: { category: true, brand: true },
-    orderBy: { createdAt: "desc" },
+    orderBy,
   });
 
   const products = rows as unknown as ProductType[];
@@ -28,7 +67,7 @@ const ProductsGrid = async ({
   }
 
   return (
-    <div className="px-3 sm:px-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

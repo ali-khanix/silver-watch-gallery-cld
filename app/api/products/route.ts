@@ -22,6 +22,7 @@ export async function POST(req: Request) {
     images,
     categoryId,
     brandId,
+    inStock,
   } = body;
 
   if (!name || !slug || !price || !categoryId) {
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
         images,
         categoryId,
         brandId: brandId || null,
+        inStock: inStock ?? true,
       },
     });
     return NextResponse.json(product, { status: 201 });

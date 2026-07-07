@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import ProductCard from "./ProductCard";
 import { ProductType } from "@/lib/schema";
+import ProductsCarousel from "./ProductsCarousel";
 
 const ProductsList = async ({
   discountedOnly,
@@ -24,15 +24,7 @@ const ProductsList = async ({
     );
   }
 
-  return (
-    <div className="flex flex-nowrap gap-2 overflow-scroll sm:overflow-hidden mx-3 sm:mx-0">
-      {products.map((product) => (
-        <div key={product.id} className="min-w-50 sm:w-full">
-          <ProductCard product={product} />
-        </div>
-      ))}
-    </div>
-  );
+  return <ProductsCarousel products={products} />;
 };
 
 export default ProductsList;

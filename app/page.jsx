@@ -28,29 +28,35 @@ export default function Home() {
       {/* BANNERS */}
       <section id="banners" className="mt-8 mx-2 sm:mx-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-          <div className="relative h-62.5 sm:h-100 rounded-[20px] overflow-hidden">
+          <Link
+            href="/products?gender=men"
+            className="relative h-62.5 sm:h-100 rounded-[20px] overflow-hidden block"
+          >
             <Image
               src={"/images/mens-watch-with-call-to-action-banner.webp"}
               alt="ساعت های مردانه"
               fill
               className="object-cover"
             />
-          </div>
-          <div className="relative h-62.5 sm:h-100 rounded-[20px] overflow-hidden">
+          </Link>
+          <Link
+            href="/products?gender=women"
+            className="relative h-62.5 sm:h-100 rounded-[20px] overflow-hidden block"
+          >
             <Image
               src={"/images/womens-watch-with-call-to-action-banner.webp"}
               fill
-              alt="ساعت های مردانه"
+              alt="ساعت های زنانه"
               className="object-cover"
             />
-          </div>
+          </Link>
         </div>
       </section>
 
       <section id="products" className="mt-10">
         <div className="flex justify-between items-center mx-3 sm:mx-0 mb-4">
           <h2 className="font-bold text-[18px]">ساعت های دارای تخفیف</h2>
-          <Link href={"/products"} className="underline">
+          <Link href={"/offers"} className="underline">
             مشاهده همه
           </Link>
         </div>

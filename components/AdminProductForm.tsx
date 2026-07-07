@@ -30,6 +30,7 @@ type ExistingProduct = {
   images: Record<string, string>;
   categoryId: string;
   brandId: string | null;
+  inStock: boolean;
 };
 
 const AdminProductForm = ({
@@ -71,6 +72,7 @@ const AdminProductForm = ({
           categoryId: existingProduct.categoryId,
           variants: defaultVariants,
           brandId: existingProduct.brandId ?? undefined,
+          inStock: existingProduct.inStock,
         }
       : { variants: defaultVariants },
   });
@@ -100,6 +102,7 @@ const AdminProductForm = ({
       colors,
       images,
       brandId: values.brandId,
+      inStock: values.inStock,
     };
 
     const url = isEditMode
@@ -230,6 +233,15 @@ const AdminProductForm = ({
           </option>
         ))}
       </select>
+
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          {...register("inStock")}
+          defaultChecked={existingProduct ? existingProduct.inStock : true}
+        />
+        موجود در انبار
+      </label>
 
       <div className="flex flex-col gap-2">
         <p className="font-medium">رنگ ها و تصاویر</p>

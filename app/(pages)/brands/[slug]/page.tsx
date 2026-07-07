@@ -1,41 +1,62 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import ProductCard from "@/components/ProductCard";
-import { ProductType } from "@/lib/schema";
+import ProductsGrid from "@/components/ProductsGrid";
+import ProductsSortDropdown from "@/components/ProductsSortDropdown";
+import ProductsFilterSidebar from "@/components/ProductsFilterSidebar";
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{
+    category?: string;
+    gender?: string;
+    discounted?: string;
+    inStock?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    sort?: string;
+  }>;
 };
 
-export default async function BrandPage({ params }: Props) {
+export default async function BrandPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { category, gender, discounted, inStock, minPrice, maxPrice, sort } =
+    await searchParams;
 
   const brand = await prisma.brand.findUnique({ where: { slug } });
   if (!brand) {
     notFound();
   }
 
-  const rows = await prisma.product.findMany({
-    where: { brandId: brand.id },
-    include: { category: true, brand: true },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const products = rows as unknown as ProductType[];
-
   return (
     <div dir="rtl" className="py-8 mx-3 sm:mx-0">
-      <h1 className="text-xl font-bold mb-6">محصولات {brand.name}</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-xl font-bold">محصولات {brand.name}</h1>
+        <Suspense fallback={null}>
+          <ProductsSortDropdown />
+        </Suspense>
+      </div>
 
-      {products.length === 0 ? (
-        <p className="text-zinc-500">هنوز محصولی برای این برند اضافه نشده</p>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <Suspense fallback={null}>
+            <ProductsFilterSidebar />
+          </Suspense>
         </div>
-      )}
+
+        <div className="flex-1">
+          <ProductsGrid
+            brandSlug={slug}
+            categorySlug={category}
+            gender={gender}
+            discountedOnly={discounted === "true"}
+            inStockOnly={inStock === "true"}
+            minPrice={minPrice ? Number(minPrice) : undefined}
+            maxPrice={maxPrice ? Number(maxPrice) : undefined}
+            sort={sort}
+          />
+        </div>
+      </div>
     </div>
   );
 }

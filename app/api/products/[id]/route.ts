@@ -31,6 +31,7 @@ export async function PUT(
     images,
     categoryId,
     brandId,
+    inStock,
   } = body;
 
   if (!name || !slug || !price || !categoryId) {
@@ -55,6 +56,7 @@ export async function PUT(
         images,
         categoryId,
         brandId: brandId || null,
+        inStock: inStock ?? true,
       },
     });
     return NextResponse.json(product);
