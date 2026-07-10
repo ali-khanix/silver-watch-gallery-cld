@@ -50,7 +50,7 @@ const ProductCard = ({ product }: { product: ProductType }) => {
       {/* IMAGE */}
       <div className="relative aspect-3/4 w-full">
         <Image
-          src={product.images?.[productTypes.color] || ""}
+          src={product.images?.[productTypes.color]?.[0] || ""}
           alt={product.name}
           fill
           className="object-cover"

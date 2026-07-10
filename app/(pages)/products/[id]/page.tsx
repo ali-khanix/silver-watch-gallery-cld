@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { ProductType } from "@/lib/schema";
-import AddToCartSection from "@/components/AddToCartSection";
+import ProductGallery from "@/components/ProductGallery";
+import { normalizeImages } from "@/lib/normalize-images";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -20,23 +20,16 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
-  const product = row as unknown as ProductType;
+  const product = {
+    ...(row as unknown as ProductType),
+    images: normalizeImages((row as any).images),
+  };
 
   return (
     <div dir="rtl" className="py-8 sm:py-14">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mx-3 sm:mx-0">
-        {/* IMAGE */}
-        <div className="relative aspect-square rounded-3xl overflow-hidden bg-zinc-50">
-          <Image
-            src={product.images[product.colors[0]]}
-            alt={product.name}
-            fill
-            priority
-            className="object-cover"
-          />
-        </div>
+        <ProductGallery product={product} />
 
-        {/* DETAILS */}
         <div className="flex flex-col justify-center">
           <p className="text-xs tracking-wide text-zinc-500 mb-3">
             {product.category.name}
@@ -61,13 +54,9 @@ export default async function ProductPage({ params }: Props) {
             )}
           </div>
 
-          <div className="h-px bg-zinc-200 mb-8" />
-
-          <AddToCartSection product={product} />
-
           {product.description && (
             <>
-              <div className="h-px bg-zinc-200 mt-10 mb-6" />
+              <div className="h-px bg-zinc-200 mb-6" />
               <div>
                 <h2 className="text-sm font-medium text-zinc-900 mb-2">
                   توضیحات محصول

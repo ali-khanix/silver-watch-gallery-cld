@@ -24,14 +24,14 @@ export const productFormSchema = z.object({
   price: z.coerce.number().positive("قیمت باید مثبت باشد"),
   offer: z.coerce.number().optional(),
   gender: z.enum(["men", "women", "kids"]).optional(),
-  inStock: z.boolean().optional(),
   categoryId: z.string().min(1, "دسته بندی را انتخاب کنید"),
   brandId: z.string().optional(),
+  inStock: z.boolean().optional(),
   variants: z
     .array(
       z.object({
         color: z.string().min(1, "کد رنگ الزامی است"),
-        imageUrl: z.string().url("آدرس تصویر معتبر نیست"),
+        imageUrls: z.string().min(1, "حداقل یک آدرس تصویر وارد کنید"),
       })
     )
     .min(1, "حداقل یک رنگ و تصویر اضافه کنید"),

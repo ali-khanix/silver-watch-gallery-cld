@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -10,11 +10,7 @@ import {
   ProductFormValues,
 } from "@/lib/admin-schema";
 
-type Brand = {
-  id: string;
-  name: string;
-  slug: string;
-};
+type Brand = { id: string; name: string; slug: string };
 type Category = { id: string; name: string; slug: string };
 
 type ExistingProduct = {
@@ -27,7 +23,7 @@ type ExistingProduct = {
   offer: number | null;
   gender: string | null;
   colors: string[];
-  images: Record<string, string>;
+  images: Record<string, string[]>;
   categoryId: string;
   brandId: string | null;
   inStock: boolean;
@@ -48,9 +44,9 @@ const AdminProductForm = ({
   const defaultVariants = existingProduct
     ? existingProduct.colors.map((color) => ({
         color,
-        imageUrl: existingProduct.images[color] || "",
+        imageUrls: (existingProduct.images[color] || []).join("\n"),
       }))
-    : [{ color: "#000000", imageUrl: "" }];
+    : [{ color: "#000000", imageUrls: "" }];
 
   const {
     register,
@@ -70,9 +66,9 @@ const AdminProductForm = ({
           offer: existingProduct.offer ?? undefined,
           gender: (existingProduct.gender ?? undefined) as any,
           categoryId: existingProduct.categoryId,
-          variants: defaultVariants,
           brandId: existingProduct.brandId ?? undefined,
           inStock: existingProduct.inStock,
+          variants: defaultVariants,
         }
       : { variants: defaultVariants },
   });
@@ -83,10 +79,15 @@ const AdminProductForm = ({
   });
 
   const onSubmit = async (values: ProductFormValues) => {
-    const images: Record<string, string> = {};
+    const images: Record<string, string[]> = {};
     const colors: string[] = [];
+
     values.variants.forEach((v) => {
-      images[v.color] = v.imageUrl;
+      const urls = v.imageUrls
+        .split("\n")
+        .map((u) => u.trim())
+        .filter(Boolean);
+      images[v.color] = urls;
       colors.push(v.color);
     });
 
@@ -99,10 +100,10 @@ const AdminProductForm = ({
       offer: values.offer,
       gender: values.gender,
       categoryId: values.categoryId,
-      colors,
-      images,
       brandId: values.brandId,
       inStock: values.inStock,
+      colors,
+      images,
     };
 
     const url = isEditMode
@@ -128,7 +129,7 @@ const AdminProductForm = ({
       router.push("/admin");
       router.refresh();
     } else {
-      reset({ variants: [{ color: "#000000", imageUrl: "" }] });
+      reset({ variants: [{ color: "#000000", imageUrls: "" }] });
     }
   };
 
@@ -170,22 +171,50 @@ const AdminProductForm = ({
 
       <div className="flex gap-3">
         <div className="flex-1">
-          <input
-            type="number"
-            placeholder="قیمت (تومان)"
-            className="border rounded-md p-2 w-full"
-            {...register("price")}
+          <Controller
+            control={control}
+            name="price"
+            render={({ field }) => (
+              <input
+                type="text"
+                placeholder="قیمت (تومان)"
+                className="border rounded-md p-2 w-full"
+                value={
+                  field.value ? Number(field.value).toLocaleString("en-US") : ""
+                }
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/,/g, "");
+                  if (/^\d*$/.test(raw)) {
+                    field.onChange(raw === "" ? undefined : Number(raw));
+                  }
+                }}
+              />
+            )}
           />
           {errors.price && (
             <p className="text-red-500 text-sm">{errors.price.message}</p>
           )}
         </div>
         <div className="flex-1">
-          <input
-            type="number"
-            placeholder="قیمت قبل از تخفیف (اختیاری)"
-            className="border rounded-md p-2 w-full"
-            {...register("offer")}
+          <Controller
+            control={control}
+            name="offer"
+            render={({ field }) => (
+              <input
+                type="text"
+                placeholder="قیمت قبل از تخفیف (اختیاری)"
+                className="border rounded-md p-2 w-full"
+                value={
+                  field.value ? Number(field.value).toLocaleString("en-US") : ""
+                }
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/,/g, "");
+                  if (/^\d*$/.test(raw)) {
+                    field.onChange(raw === "" ? undefined : Number(raw));
+                  }
+                }}
+              />
+            )}
           />
         </div>
       </div>
@@ -243,25 +272,36 @@ const AdminProductForm = ({
         موجود در انبار
       </label>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-4">
         <p className="font-medium">رنگ ها و تصاویر</p>
         {fields.map((field, index) => (
-          <div key={field.id} className="flex gap-2 items-start">
+          <div
+            key={field.id}
+            className="flex gap-2 items-start border rounded-md p-3"
+          >
             <input
               type="color"
-              className="w-12 h-10 border rounded-md"
+              className="w-12 h-10 border rounded-md shrink-0"
               {...register(`variants.${index}.color` as const)}
             />
-            <input
-              placeholder="آدرس تصویر (URL)"
-              className="border rounded-md p-2 flex-1"
-              {...register(`variants.${index}.imageUrl` as const)}
-            />
+            <div className="flex-1">
+              <textarea
+                placeholder={"یک آدرس تصویر در هر خط (چند تصویر برای این رنگ)"}
+                rows={3}
+                className="border rounded-md p-2 w-full text-sm"
+                {...register(`variants.${index}.imageUrls` as const)}
+              />
+              {errors.variants?.[index]?.imageUrls && (
+                <p className="text-red-500 text-sm">
+                  {errors.variants[index]?.imageUrls?.message}
+                </p>
+              )}
+            </div>
             {fields.length > 1 && (
               <button
                 type="button"
                 onClick={() => remove(index)}
-                className="text-red-500 px-2"
+                className="text-red-500 px-2 shrink-0"
               >
                 حذف
               </button>
@@ -273,7 +313,7 @@ const AdminProductForm = ({
         )}
         <button
           type="button"
-          onClick={() => append({ color: "#000000", imageUrl: "" })}
+          onClick={() => append({ color: "#000000", imageUrls: "" })}
           className="text-sm underline w-fit"
         >
           + افزودن رنگ دیگر

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import ProductCard from "./ProductCard";
 import { ProductType } from "@/lib/schema";
 import { Prisma } from "@/lib/generated/prisma/client";
+import { normalizeImages } from "@/lib/normalize-images";
 
 const ProductsGrid = async ({
   categorySlug,
@@ -60,7 +61,10 @@ const ProductsGrid = async ({
     orderBy,
   });
 
-  const products = rows as unknown as ProductType[];
+  const products = (rows as unknown as ProductType[]).map((p) => ({
+    ...p,
+    images: normalizeImages(p.images as any),
+  }));
 
   if (products.length === 0) {
     return <p className="text-center text-zinc-500 py-10">محصولی یافت نشد</p>;
