@@ -1,0 +1,14 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "ignoreRegExpList": [
+    "[\\u0600-\\u06FF\\u0750-\\u077F]+"
+  ],
+  "words": [
+    "shadcn",
+    "zustand",
+    "clerk",
+    "vazirmatn",
+    "prisma"
+  ]
+}

@@ -3,7 +3,7 @@ import { ProductType } from "@/lib/schema";
 import useCartStore from "@/stores/cartStore";
 import { ShoppingCart } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -12,9 +12,11 @@ const ProductCard = ({ product }: { product: ProductType }) => {
     color: product.colors[0],
   });
 
+  const router = useRouter();
   const { addToCart } = useCartStore();
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     addToCart({
       ...product,
       quantity: 1,
@@ -25,12 +27,15 @@ const ProductCard = ({ product }: { product: ProductType }) => {
   };
 
   function handleProductType({
+    e,
     type,
     value,
   }: {
+    e: React.MouseEvent;
     type: "color" | "";
     value: string;
   }) {
+    e.stopPropagation();
     setProductTypes((prev) => ({
       ...prev,
       [type]: value,
@@ -38,23 +43,17 @@ const ProductCard = ({ product }: { product: ProductType }) => {
   }
 
   return (
-    <div className="rounded-3xl overflow-hidden bg-white flex flex-col p-2 sm:mx-0 sm:px-4 sm:py-4 sm:my-4 hover:-translate-y-1 transition-all duration-300 hover:bg-zinc-50">
+    <div
+      onClick={() => router.push(`/products/${product.slug}`)}
+      className="rounded-3xl overflow-hidden bg-white flex flex-col p-2 sm:mx-0 sm:px-4 sm:py-4 sm:my-4 hover:-translate-y-1 transition-all duration-300 hover:bg-zinc-50 cursor-pointer"
+    >
       {/* IMAGE */}
-      <div className="relative aspect-3/4 ">
-        <Link href={`/products/${product.slug}`} className="w-full ">
-          <Image
-            src={product.images?.[productTypes.color] || ""}
-            alt={product.name}
-            fill
-            className="object-cover"
-          />
-        </Link>
+      <div className="relative aspect-3/4 w-full">
         <Image
-          width={16}
-          height={16}
-          src={"/icons/watch-logo.svg"}
-          alt={"برند عکس"}
-          className="absolute left-1 top-1"
+          src={product.images?.[productTypes.color] || ""}
+          alt={product.name}
+          fill
+          className="object-cover"
         />
       </div>
 
@@ -75,7 +74,9 @@ const ProductCard = ({ product }: { product: ProductType }) => {
             <div
               key={color}
               className={`p-px rounded-full`}
-              onClick={() => handleProductType({ type: "color", value: color })}
+              onClick={(e) =>
+                handleProductType({ e, type: "color", value: color })
+              }
             >
               <div
                 className="w-3.5 h-3.5 rounded-full"
@@ -85,7 +86,6 @@ const ProductCard = ({ product }: { product: ProductType }) => {
           ))}
         </div>
 
-        {/* PRICE AND ADD BUTTON*/}
         {/* PRICE AND ADD BUTTON*/}
         <div className="flex justify-center items-start sm:mt-4 flex-col gap-4">
           <div className="flex flex-col w-full">
