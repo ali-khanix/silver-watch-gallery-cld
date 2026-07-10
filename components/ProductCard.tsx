@@ -3,7 +3,7 @@ import { ProductType } from "@/lib/schema";
 import useCartStore from "@/stores/cartStore";
 import { ShoppingCart } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -12,11 +12,9 @@ const ProductCard = ({ product }: { product: ProductType }) => {
     color: product.colors[0],
   });
 
-  const router = useRouter();
   const { addToCart } = useCartStore();
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleAddToCart = () => {
     addToCart({
       ...product,
       quantity: 1,
@@ -27,15 +25,12 @@ const ProductCard = ({ product }: { product: ProductType }) => {
   };
 
   function handleProductType({
-    e,
     type,
     value,
   }: {
-    e: React.MouseEvent;
     type: "color" | "";
     value: string;
   }) {
-    e.stopPropagation();
     setProductTypes((prev) => ({
       ...prev,
       [type]: value,
@@ -43,21 +38,25 @@ const ProductCard = ({ product }: { product: ProductType }) => {
   }
 
   return (
-    <div
-      onClick={() => router.push(`/products/${product.slug}`)}
-      className="rounded-3xl overflow-hidden bg-white flex flex-col p-2 sm:mx-0 sm:px-4 sm:py-4 sm:my-4 hover:-translate-y-1 transition-all duration-300 hover:bg-zinc-50 cursor-pointer"
-    >
-      {/* IMAGE */}
-      <div className="relative aspect-3/4 w-full">
+    <div className="rounded-3xl overflow-hidden bg-white flex flex-col p-2 sm:mx-0 sm:px-4 sm:py-4 sm:my-4 hover:-translate-y-1 transition-all duration-300 hover:bg-zinc-50">
+      <div className="relative aspect-3/4 ">
+        <Link href={`/products/${product.slug}`} className="w-full ">
+          <Image
+            src={product.images?.[productTypes.color]?.[0] || ""}
+            alt={product.name}
+            fill
+            className="object-cover"
+          />
+        </Link>
         <Image
-          src={product.images?.[productTypes.color]?.[0] || ""}
-          alt={product.name}
-          fill
-          className="object-cover"
+          width={16}
+          height={16}
+          src={"/icons/watch-logo.svg"}
+          alt={"برند عکس"}
+          className="absolute left-1 top-1"
         />
       </div>
 
-      {/* PRODUCT DETAILS */}
       <div className="flex flex-col py-2 gap-2 sm:w-full justify-center sm:block">
         <div className="flex flex-col items-start justify-center gap-1">
           <h1 className="font-medium text-zinc-700 line-clamp-1">
@@ -68,15 +67,12 @@ const ProductCard = ({ product }: { product: ProductType }) => {
           </p>
         </div>
 
-        {/* COLORS */}
         <div className="flex items-center justify-start gap-1 mt-1">
           {product.colors.map((color) => (
             <div
               key={color}
               className={`p-px rounded-full`}
-              onClick={(e) =>
-                handleProductType({ e, type: "color", value: color })
-              }
+              onClick={() => handleProductType({ type: "color", value: color })}
             >
               <div
                 className="w-3.5 h-3.5 rounded-full"
@@ -86,7 +82,6 @@ const ProductCard = ({ product }: { product: ProductType }) => {
           ))}
         </div>
 
-        {/* PRICE AND ADD BUTTON*/}
         <div className="flex justify-center items-start sm:mt-4 flex-col gap-4">
           <div className="flex flex-col w-full">
             <span

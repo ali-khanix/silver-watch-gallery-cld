@@ -46,10 +46,10 @@ const ShoppingCartIcon = ({ size = 28, className }: ShoppingCartIconProps) => {
                   >
                     <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-zinc-100">
                       <Image
-                        src={item.images?.[item.selectedColor] || ""}
-                        alt={item.name}
+                        src={item.images?.[item.selectedColor]?.[0] ?? ""}
                         fill
-                        className="object-cover"
+                        className="object-contain"
+                        alt={item.name}
                       />
                     </div>
                     <div className="flex flex-col min-w-0 flex-1">
