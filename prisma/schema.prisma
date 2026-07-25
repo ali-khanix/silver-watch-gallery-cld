@@ -47,3 +47,11 @@ model Product {
   brand            Brand?   @relation(fields: [brandId], references: [id])
   brandId          String?
 }
+
+model HeroSlide {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  link      String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}

@@ -48,3 +48,8 @@ export const brandFormSchema = z.object({
 });
 
 export type BrandFormValues = z.infer<typeof brandFormSchema>;
+
+export const heroSlideFormSchema = z.object({
+  link: z.string().optional(),
+});
+export type HeroSlideFormValues = z.infer<typeof heroSlideFormSchema>;

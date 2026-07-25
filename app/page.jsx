@@ -1,19 +1,17 @@
 import ProductsList from "@/components/ProductsList";
+import HeroCarousel from "@/components/HeroCarousel";
 import Image from "next/image";
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
-export default function Home() {
+export default async function Home() {
+  const heroSlides = await prisma.heroSlide.findMany({
+    orderBy: { order: "asc" },
+  });
+
   return (
     <>
-      <div className="relative aspect-square sm:aspect-3/1">
-        {/* HERO */}
-        <Image
-          src={"/images/hero-1.webp"}
-          alt="عکس ساعت حرفه ای"
-          fill
-          className="object-cover"
-        />
-      </div>
+      <HeroCarousel slides={heroSlides} />
 
       <section id="products" className="mt-10">
         <div className="flex justify-between items-center mx-3 sm:mx-0 mb-4">
