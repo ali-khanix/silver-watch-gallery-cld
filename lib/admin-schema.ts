@@ -31,7 +31,6 @@ export const productFormSchema = z.object({
     .array(
       z.object({
         color: z.string().min(1, "کد رنگ الزامی است"),
-        imageUrls: z.string().min(1, "حداقل یک آدرس تصویر وارد کنید"),
       })
     )
     .min(1, "حداقل یک رنگ و تصویر اضافه کنید"),

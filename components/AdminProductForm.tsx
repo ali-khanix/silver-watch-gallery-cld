@@ -1,9 +1,12 @@
 "use client";
 
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Image from "next/image";
+import { X, Loader2, Upload } from "lucide-react";
 import {
   productFormSchema,
   ProductFormInput,
@@ -41,12 +44,14 @@ const AdminProductForm = ({
   const router = useRouter();
   const isEditMode = Boolean(existingProduct);
 
-  const defaultVariants = existingProduct
-    ? existingProduct.colors.map((color) => ({
-        color,
-        imageUrls: (existingProduct.images[color] || []).join("\n"),
-      }))
-    : [{ color: "#000000", imageUrls: "" }];
+  const [variantImages, setVariantImages] = useState<string[][]>(
+    existingProduct
+      ? existingProduct.colors.map(
+          (color) => existingProduct.images[color] || []
+        )
+      : [[]]
+  );
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
   const {
     register,
@@ -68,9 +73,9 @@ const AdminProductForm = ({
           categoryId: existingProduct.categoryId,
           brandId: existingProduct.brandId ?? undefined,
           inStock: existingProduct.inStock,
-          variants: defaultVariants,
+          variants: existingProduct.colors.map((color) => ({ color })),
         }
-      : { variants: defaultVariants },
+      : { variants: [{ color: "#000000" }] },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -78,16 +83,81 @@ const AdminProductForm = ({
     name: "variants",
   });
 
+  const handleAppendVariant = () => {
+    append({ color: "#000000" });
+    setVariantImages((prev) => [...prev, []]);
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    remove(index);
+    setVariantImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFilesSelected = async (
+    index: number,
+    fileList: FileList | null
+  ) => {
+    if (!fileList || fileList.length === 0) return;
+
+    setUploadingIndex(index);
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (const file of Array.from(fileList)) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const { error } = await res.json();
+          toast.error(error || `خطا در آپلود ${file.name}`);
+          continue;
+        }
+
+        const { url } = await res.json();
+        uploadedUrls.push(url);
+      }
+
+      setVariantImages((prev) => {
+        const next = [...prev];
+        next[index] = [...(next[index] || []), ...uploadedUrls];
+        return next;
+      });
+    } finally {
+      setUploadingIndex(null);
+    }
+  };
+
+  const handleRemoveImage = (variantIndex: number, imageIndex: number) => {
+    setVariantImages((prev) => {
+      const next = [...prev];
+      next[variantIndex] = next[variantIndex].filter(
+        (_, i) => i !== imageIndex
+      );
+      return next;
+    });
+  };
+
   const onSubmit = async (values: ProductFormValues) => {
+    const emptyVariantIndex = values.variants.findIndex(
+      (_, i) => !variantImages[i] || variantImages[i].length === 0
+    );
+    if (emptyVariantIndex !== -1) {
+      toast.error(
+        `برای رنگ شماره ${emptyVariantIndex + 1} حداقل یک تصویر آپلود کنید`
+      );
+      return;
+    }
+
     const images: Record<string, string[]> = {};
     const colors: string[] = [];
 
-    values.variants.forEach((v) => {
-      const urls = v.imageUrls
-        .split("\n")
-        .map((u) => u.trim())
-        .filter(Boolean);
-      images[v.color] = urls;
+    values.variants.forEach((v, i) => {
+      images[v.color] = variantImages[i];
       colors.push(v.color);
     });
 
@@ -129,7 +199,8 @@ const AdminProductForm = ({
       router.push("/admin");
       router.refresh();
     } else {
-      reset({ variants: [{ color: "#000000", imageUrls: "" }] });
+      reset({ variants: [{ color: "#000000" }] });
+      setVariantImages([[]]);
     }
   };
 
@@ -171,50 +242,22 @@ const AdminProductForm = ({
 
       <div className="flex gap-3">
         <div className="flex-1">
-          <Controller
-            control={control}
-            name="price"
-            render={({ field }) => (
-              <input
-                type="text"
-                placeholder="قیمت (تومان)"
-                className="border rounded-md p-2 w-full"
-                value={
-                  field.value ? Number(field.value).toLocaleString("en-US") : ""
-                }
-                onChange={(e) => {
-                  const raw = e.target.value.replace(/,/g, "");
-                  if (/^\d*$/.test(raw)) {
-                    field.onChange(raw === "" ? undefined : Number(raw));
-                  }
-                }}
-              />
-            )}
+          <input
+            type="number"
+            placeholder="قیمت (تومان)"
+            className="border rounded-md p-2 w-full"
+            {...register("price")}
           />
           {errors.price && (
             <p className="text-red-500 text-sm">{errors.price.message}</p>
           )}
         </div>
         <div className="flex-1">
-          <Controller
-            control={control}
-            name="offer"
-            render={({ field }) => (
-              <input
-                type="text"
-                placeholder="قیمت قبل از تخفیف (اختیاری)"
-                className="border rounded-md p-2 w-full"
-                value={
-                  field.value ? Number(field.value).toLocaleString("en-US") : ""
-                }
-                onChange={(e) => {
-                  const raw = e.target.value.replace(/,/g, "");
-                  if (/^\d*$/.test(raw)) {
-                    field.onChange(raw === "" ? undefined : Number(raw));
-                  }
-                }}
-              />
-            )}
+          <input
+            type="number"
+            placeholder="قیمت قبل از تخفیف (اختیاری)"
+            className="border rounded-md p-2 w-full"
+            {...register("offer")}
           />
         </div>
       </div>
@@ -277,34 +320,64 @@ const AdminProductForm = ({
         {fields.map((field, index) => (
           <div
             key={field.id}
-            className="flex gap-2 items-start border rounded-md p-3"
+            className="flex flex-col gap-3 border rounded-md p-3"
           >
-            <input
-              type="color"
-              className="w-12 h-10 border rounded-md shrink-0"
-              {...register(`variants.${index}.color` as const)}
-            />
-            <div className="flex-1">
-              <textarea
-                placeholder={"یک آدرس تصویر در هر خط (چند تصویر برای این رنگ)"}
-                rows={3}
-                className="border rounded-md p-2 w-full text-sm"
-                {...register(`variants.${index}.imageUrls` as const)}
+            <div className="flex gap-2 items-center">
+              <input
+                type="color"
+                className="w-12 h-10 border rounded-md shrink-0"
+                {...register(`variants.${index}.color` as const)}
               />
-              {errors.variants?.[index]?.imageUrls && (
-                <p className="text-red-500 text-sm">
-                  {errors.variants[index]?.imageUrls?.message}
-                </p>
+              <label className="flex-1 border border-dashed rounded-md p-2 text-sm text-center cursor-pointer hover:bg-zinc-50 flex items-center justify-center gap-2">
+                {uploadingIndex === index ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    در حال آپلود...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={16} />
+                    انتخاب تصویر (چند فایل مجاز است)
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  disabled={uploadingIndex === index}
+                  onChange={(e) => handleFilesSelected(index, e.target.files)}
+                />
+              </label>
+              {fields.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveVariant(index)}
+                  className="text-red-500 px-2 shrink-0"
+                >
+                  حذف رنگ
+                </button>
               )}
             </div>
-            {fields.length > 1 && (
-              <button
-                type="button"
-                onClick={() => remove(index)}
-                className="text-red-500 px-2 shrink-0"
-              >
-                حذف
-              </button>
+
+            {variantImages[index]?.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {variantImages[index].map((url, imgIndex) => (
+                  <div
+                    key={url + imgIndex}
+                    className="relative w-16 h-16 rounded-md overflow-hidden border shrink-0"
+                  >
+                    <Image src={url} alt="" fill className="object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index, imgIndex)}
+                      className="absolute top-0.5 left-0.5 bg-black/60 rounded-full p-0.5"
+                    >
+                      <X size={12} className="text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         ))}
@@ -313,7 +386,7 @@ const AdminProductForm = ({
         )}
         <button
           type="button"
-          onClick={() => append({ color: "#000000", imageUrls: "" })}
+          onClick={handleAppendVariant}
           className="text-sm underline w-fit"
         >
           + افزودن رنگ دیگر
@@ -322,7 +395,7 @@ const AdminProductForm = ({
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || uploadingIndex !== null}
         className="bg-zinc-950 text-white rounded-md p-2 disabled:opacity-50 mt-2"
       >
         {isEditMode ? "ذخیره تغییرات" : "افزودن محصول"}
