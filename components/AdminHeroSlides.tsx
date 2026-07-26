@@ -13,14 +13,18 @@ type HeroSlide = {
   order: number;
 };
 
+const MAX_SLIDES = 30;
+
 const AdminHeroSlides = ({ slides }: { slides: HeroSlide[] }) => {
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
   const [link, setLink] = useState("");
 
   const handleUpload = async (file: File) => {
-    if (slides.length >= 3) {
-      toast.error("حداکثر ۳ اسلاید مجاز است. ابتدا یکی را حذف کنید");
+    if (slides.length >= MAX_SLIDES) {
+      toast.error(
+        `حداکثر ${MAX_SLIDES} اسلاید مجاز است. ابتدا یکی را حذف کنید`
+      );
       return;
     }
 
@@ -73,7 +77,7 @@ const AdminHeroSlides = ({ slides }: { slides: HeroSlide[] }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
         {slides.map((slide) => (
           <div
             key={slide.id}
@@ -90,7 +94,7 @@ const AdminHeroSlides = ({ slides }: { slides: HeroSlide[] }) => {
         ))}
       </div>
 
-      {slides.length < 3 && (
+      {slides.length < MAX_SLIDES && (
         <div className="flex flex-col gap-2">
           <input
             placeholder="لینک (اختیاری، مثلا: /products?gender=men)"
@@ -105,7 +109,8 @@ const AdminHeroSlides = ({ slides }: { slides: HeroSlide[] }) => {
               </>
             ) : (
               <>
-                <Upload size={16} /> افزودن اسلاید ({slides.length}/۳)
+                <Upload size={16} /> افزودن اسلاید ({slides.length}/{MAX_SLIDES}
+                )
               </>
             )}
             <input

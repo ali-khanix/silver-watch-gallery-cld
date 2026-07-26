@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   }
 
   const count = await prisma.heroSlide.count();
-  if (count >= 3) {
+  if (count >= 30) {
     return NextResponse.json(
       { error: "حداکثر ۳ اسلاید مجاز است" },
       { status: 409 }
