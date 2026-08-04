@@ -16,6 +16,7 @@ model Brand {
   id        String    @id @default(cuid())
   name      String
   slug      String    @unique
+  logo      String?
   products  Product[]
   createdAt DateTime  @default(now())
 }
@@ -54,4 +55,33 @@ model HeroSlide {
   link      String?
   order     Int      @default(0)
   createdAt DateTime @default(now())
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  userId    String
+  status    String      @default("pending")
+  name      String
+  email     String
+  phone     String
+  address   String
+  city      String
+  subtotal  Int
+  discount  Int
+  shipping  Int
+  total     Int
+  createdAt DateTime    @default(now())
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  name      String
+  price     Int
+  quantity  Int
+  color     String
+  image     String?
 }

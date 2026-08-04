@@ -1,6 +1,22 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-export default clerkMiddleware();
+export default clerkMiddleware((auth, req) => {
+  const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
+  const isLoginRoute = req.nextUrl.pathname === "/admin-login";
+
+  if (isAdminRoute && !isLoginRoute) {
+    const authCookie = req.cookies.get("admin_auth")?.value;
+
+    if (authCookie !== "true") {
+      const loginUrl = new URL("/admin-login", req.url);
+      loginUrl.searchParams.set("redirect", req.nextUrl.pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: [

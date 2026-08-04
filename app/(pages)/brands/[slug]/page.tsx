@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import ProductsGrid from "@/components/ProductsGrid";
 import ProductsSortDropdown from "@/components/ProductsSortDropdown";
 import ProductsFilterSidebar from "@/components/ProductsFilterSidebar";
+import Image from "next/image";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -30,11 +31,18 @@ export default async function BrandPage({ params, searchParams }: Props) {
 
   return (
     <div dir="rtl" className="py-8 mx-3 sm:mx-0">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center gap-3 mb-6">
+        {brand.logo && (
+          <div className="relative w-12 h-12 shrink-0">
+            <Image
+              src={brand.logo}
+              alt={brand.name}
+              fill
+              className="object-contain"
+            />
+          </div>
+        )}
         <h1 className="text-xl font-bold">محصولات {brand.name}</h1>
-        <Suspense fallback={null}>
-          <ProductsSortDropdown />
-        </Suspense>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">

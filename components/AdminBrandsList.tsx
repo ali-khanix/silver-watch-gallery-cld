@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
-type Brand = { id: string; name: string; slug: string };
+type Brand = { id: string; name: string; slug: string; logo: string | null };
 
 const AdminBrandsList = ({ brands }: { brands: Brand[] }) => {
   const router = useRouter();
@@ -26,12 +27,24 @@ const AdminBrandsList = ({ brands }: { brands: Brand[] }) => {
   };
 
   return (
-    <ul className="mt-4 flex flex-col gap-1">
+    <ul className="mt-4 flex flex-col gap-2">
       {brands.map((b) => (
         <li key={b.id} className="flex items-center justify-between text-sm">
-          <span>
-            {b.name} ({b.slug})
-          </span>
+          <div className="flex items-center gap-2">
+            {b.logo && (
+              <div className="relative w-8 h-8 rounded-md overflow-hidden border shrink-0">
+                <Image
+                  src={b.logo}
+                  alt=""
+                  fill
+                  className="object-contain bg-white"
+                />
+              </div>
+            )}
+            <span>
+              {b.name} ({b.slug})
+            </span>
+          </div>
           <button
             onClick={() => handleDelete(b.id, b.name)}
             disabled={deletingId === b.id}

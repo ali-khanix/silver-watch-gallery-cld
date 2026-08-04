@@ -7,7 +7,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { name, slug } = await req.json();
+  const { name, slug, logo } = await req.json();
 
   if (!name || !slug) {
     return NextResponse.json(
@@ -17,7 +17,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const brand = await prisma.brand.create({ data: { name, slug } });
+    const brand = await prisma.brand.create({
+      data: { name, slug, logo: logo || null },
+    });
     return NextResponse.json(brand, { status: 201 });
   } catch {
     return NextResponse.json(

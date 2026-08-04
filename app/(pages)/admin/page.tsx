@@ -6,6 +6,8 @@ import AdminCategoryForm from "@/components/AdminCategoryForm";
 import AdminBrandForm from "@/components/AdminBrandForm";
 import AdminBrandsList from "@/components/AdminBrandsList";
 import AdminHeroSlides from "@/components/AdminHeroSlides";
+import AdminLogoutButton from "@/components/AdminLogoutButton";
+import Link from "next/link";
 
 export default async function AdminPage() {
   const [categories, brands, products, heroSlides] = await Promise.all([
@@ -23,6 +25,14 @@ export default async function AdminPage() {
       dir="rtl"
       className="max-w-2xl mx-auto py-10 px-4 flex flex-col gap-12"
     >
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">پنل مدیریت</h1>
+        <Link href="/admin/orders" className="text-sm underline">
+          سفارش ها
+        </Link>
+        <AdminLogoutButton />
+      </div>
+
       <section>
         <h2 className="text-xl font-bold mb-4">اسلایدهای صفحه اصلی</h2>
         <AdminHeroSlides slides={heroSlides} />

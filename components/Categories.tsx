@@ -9,10 +9,12 @@ import {
 } from "@/components/ui/navigation-menu";
 import Link from "next/link";
 import { CategoryNav } from "@/lib/category-type";
+import Image from "next/image";
 
-type Brand = { id: string; name: string; slug: string };
+type Brand = { id: string; name: string; slug: string; logo: string | null };
 
 const staticMenuItems = [
+  { name: "کالکشن ها", slug: "collections" },
   { name: "تخفیف ها", slug: "offers" },
   { name: "تماس با ما", slug: "call-us" },
 ];
@@ -53,6 +55,12 @@ const Categories = ({
             </NavigationMenuTrigger>
             <NavigationMenuContent className="right-0 min-w-max p-4">
               <div className="flex flex-col gap-8">
+                <NavigationMenuLink
+                  asChild
+                  className={cn(linkClassName, "font-bold")}
+                >
+                  <Link href="/products">همه محصولات</Link>
+                </NavigationMenuLink>
                 {groups.map((group) => (
                   <div key={group.title} className="flex flex-col gap-1">
                     <p className="text-xs text-zinc-500 mb-1">{group.title}</p>
@@ -84,15 +92,38 @@ const Categories = ({
               برند ها
             </NavigationMenuTrigger>
             <NavigationMenuContent className="right-0 min-w-max p-4">
-              {brands.map((brand, index) => (
+              <div className="flex flex-col gap-1">
                 <NavigationMenuLink
                   asChild
-                  key={brand.id}
-                  className={cn(linkClassName, index === 0 && "font-bold")}
+                  className={cn(linkClassName, "font-bold")}
                 >
-                  <Link href={`/brands/${brand.slug}`}>{brand.name}</Link>
+                  <Link href="/brands">همه ی برند ها</Link>
                 </NavigationMenuLink>
-              ))}
+                {brands.map((brand) => (
+                  <NavigationMenuLink
+                    asChild
+                    key={brand.id}
+                    className={linkClassName}
+                  >
+                    <Link
+                      href={`/brands/${brand.slug}`}
+                      className="flex items-center gap-2"
+                    >
+                      {brand.logo && (
+                        <div className="relative w-5 h-5 shrink-0">
+                          <Image
+                            src={brand.logo}
+                            alt=""
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                      )}
+                      {brand.name}
+                    </Link>
+                  </NavigationMenuLink>
+                ))}
+              </div>
             </NavigationMenuContent>
           </NavigationMenuItem>
         )}

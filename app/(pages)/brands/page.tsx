@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 
 export default async function BrandsPage() {
@@ -16,8 +17,22 @@ export default async function BrandsPage() {
             <Link
               key={brand.id}
               href={`/brands/${brand.slug}`}
-              className="border rounded-2xl p-6 text-center font-medium hover:bg-zinc-50 transition-colors"
+              className="border rounded-2xl p-6 flex flex-col items-center gap-3 text-center font-medium hover:bg-zinc-50 transition-colors"
             >
+              {brand.logo ? (
+                <div className="relative w-16 h-16">
+                  <Image
+                    src={brand.logo}
+                    alt={brand.name}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400 text-xs">
+                  بدون لوگو
+                </div>
+              )}
               {brand.name}
             </Link>
           ))}
